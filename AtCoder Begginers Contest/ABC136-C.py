@@ -1,4 +1,5 @@
 # ABC136 - C
+
 # 0~iまでの最大値 max_h を記録しておき、max_h > h[i] のとき "No" とすればどうか
 # 結果的に上手く実装できず解説AC
 
@@ -17,5 +18,4 @@ for i in range(1,n):
             print("No")
             exit()
 
-#print(max_h)
 print("Yes")
