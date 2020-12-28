@@ -19,7 +19,7 @@ for i in range(1,h+1):
       temp = ""
       for j in range(1,w+1):
             cnt = 0
-            for k in range(8):
+            for k in range(len(dx)):
                   if ex_maps[i][j] == "#":
                         break
                   #print(ex_maps[i+dx[k]][j+dy[k]],k)
