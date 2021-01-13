@@ -1,8 +1,8 @@
 # ABC145 - C
 
 # 階乗をそのまま全探索するものだが、最大でも8!= 40320回なので十分高速に解を求めることが出来る
-import itertools　# permutations()
-import math       # sqrt()
+import itertools
+import math
 
 n = int(input())
 towns = [[int(x) for x in input().split()] for y in range(n)]
