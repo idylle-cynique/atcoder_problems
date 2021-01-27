@@ -1,3 +1,5 @@
+# ABC122 - C
+
 n,q = [int(x) for x in input().split()]
 s = input()
 accm = [0]
