@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <math.h>
-int max(a,b,c){
+int max(int a,int b,int c){
     if(a>=b && a>=c)
         return a;
     if(b>=c && b>=a)
