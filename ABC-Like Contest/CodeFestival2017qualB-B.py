@@ -9,6 +9,7 @@ d = [int(x) for x in input().split()]
 m = int(input())
 t = [int(x) for x in input().split()]
 
+# d,tの中身をそれぞれ整理
 d_data = collections.Counter(d)
 t_data = collections.Counter(t)
 
