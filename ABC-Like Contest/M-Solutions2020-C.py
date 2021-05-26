@@ -1,23 +1,23 @@
-# M-Solutions プロコンオープン2020 - C
-nums = [int(x) for x in input().split()]
-k = int(input())
+# M-Solutions2020 - C
+# 他の問題のコードを誤ってPushしていたようだったので修正
 
-# R < G < B の関係性が成り立つようにする。
-# 一度の操作で任意のカードの数字を二倍にできる　⇒  数字の操作はnums[x] }* (2**n)ということ。
-# k回の2倍化処理が可能で、カードの種類は3種類なので、 3**k通りのパターンが考えられる。
+# (1) 尺取り法の発想を用いた実装
+# (2) 計算値の比較を各値の愚直な計算処理なしに行うこと
+# の2点が求められる。
+# 問題中で要求される評定は、部分数列の各要素を掛け合わせたものだが、その大小を比較するだけなら実際に計算する必要はなく
+# 尺取り法によって「取り出された評定値」と「新たに追加する評定値」の2つを比較するだけでよい
+# このような実装を行えば、算定した評定値が極端に大きな数値になりオーバーフローを起こしたり、計算そのものに時間がかかってしまうこともない
 
-def nums_check(nums):
-      if nums[0] < nums[1] and nums[1] < nums[2]:
-            return True
-      else:
-            return False
+N,K = map(int,input().split())
+Points = [int(x) for x in input().split()]
+l,r = 0,K # 評定に用いる区間の左端インデックスと右端インデックス
 
-for i in range(k):
-      if nums_check(nums) == True:
-            break
-      elif nums[0] >= nums[1]:
-            nums[1] *= 2
-      elif nums[1] >= nums[2]:
-            nums[2] *= 2
-
-print("Yes") if nums_check(nums) == True else print("No")
+while(r < N): # 
+    #print(Points[l],Points[r],end=":"); print(Points[l:r])
+    if Points[l] < Points[r]:
+        print("Yes") # 取り出された数より追加された数の方が大きい場合は Yes
+    else:
+        print("No")  # 取り出された数の方が大きいなら No 
+    l += 1 # 各インデックスを進める
+    r += 1
+    
