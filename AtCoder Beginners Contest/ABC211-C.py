@@ -21,7 +21,7 @@ def view_dp(DP): # DPテーブルの閲覧
     print()
     return True
     
-for j in range(len(S)+1
+for j in range(len(S)+1):
     dp[0][j] = 1
     
 #view_dp(dp)
