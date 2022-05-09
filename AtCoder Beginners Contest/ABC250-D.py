@@ -1,3 +1,5 @@
+
+
 import bisect
 
 def elatos(n):
@@ -20,23 +22,18 @@ def elatos(n):
 
 N = int(input())
 
-q = 2
 cnt = 0
 max_q = int(N**(1/3)//1)
-print(N,":",max_q)
 primes = sorted(elatos(max_q))
 
-print(primes[:100])
-for p in primes:
-    div = N//(p**3)
-    print(p,":",p**3,div)
-
+for q in primes:
+    div = min(N//(q**3),q)
     div = min(div,q)
 
-    idx = bisect.bisect_left(primes, div)
-    print(f"-> {idx}?")
-
+    if div == q:
+        div -= 1
+    idx = bisect.bisect_right(primes, div)
+    #print(q,":",q**3,div); print(f"-> {idx}?")
     cnt += (idx)
 
-    
-
+print(cnt)
