@@ -6,7 +6,7 @@
     pythonのような多倍長整数計算が可能な言語でも、計算値が大きくなりすぎるために制限時間内での処理が難しい場合がある
 
     ただし、この問題では問題文の最後に
-        ”なお、答えが 1018 以下になるような入力のみが与えられます。”
+        ”なお、答えが 10^18 以下になるような入力のみが与えられます。”
     という御都合主義的な条件が示されており、最終的な値は計算・出力が容易な程度の大きさに留まるように設定されている
     つまり、二分木の操作に着目して、実際に計算する必要のない処理を上手く省いて計算することで
     比較的小さい値での処理にまとめることができそうだ、と推察できる
@@ -40,7 +40,8 @@ int main(void){
     stack<string> commands_stack;
     string c;
     string push_ele, top_ele;
-    
+
+    // 省略可能な処理をスタックから取り除く
     for(int i=commands.size(); i>=0; i--){
         if(commands_stack.empty()){ 
             c = commands[i];
@@ -52,9 +53,9 @@ int main(void){
                 commands_stack.pop();
             }
         }
-        
     }
     
+    // 二分木のノード移動処理を再現
     for(int i=0; i<commands.size(); i++){
         c = commands[i];
         if(c == "U") {node /= 2;}
@@ -64,5 +65,7 @@ int main(void){
         if(c == "R") {node *= 2; node += 1;}
         // cout << commands[i] << " : " << node <<  endl;
     }
+
+    // 解答出力
     cout << node << endl;
 }
