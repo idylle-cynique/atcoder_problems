@@ -1,7 +1,7 @@
-# ABC082 - B
-
-# Pythonの場合文字列の比較もいたって容易なので難しいところはない
-# sを昇順に、tを降順にソートして (s<t)==True なら Yes
+'''ABC082 - B
+    文字列sを辞書順最小の形に、文字列tを辞書順最大の形に並べ直し
+    この時に s' < t' が成り立つならYes, そうでなければNo とすればよい
+'''
 
 s = input()
 t = input()
@@ -14,6 +14,6 @@ t = "".join(t)
 #print(s); print(t)
 
 if s < t:
-        print("Yes")
+    print("Yes")
 else:
-        print("No")
+    print("No")
