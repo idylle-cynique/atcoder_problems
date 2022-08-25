@@ -1,4 +1,6 @@
-// ABC081 - A
+/*  ABC081 - A
+    問題文で書かれている処理をそのまま実装するだけでよい
+*/
 #include <stdio.h>
 int main(void){
       char m[3] = {};
