@@ -29,16 +29,18 @@ jobs:
           gh pr list --base main --head ${{ github.ref_name }} --json number --jq '.[0].number' > pr_number.txt
           if [ -s pr_number.txt ]; then
             echo "pr_exists=true" >> $GITHUB_OUTPUT
+            echo "pr_number=$(cat pr_number.txt)" >> $GITHUB_OUTPUT
           else
             echo "pr_exists=false" >> $GITHUB_OUTPUT
+            echo "pr_number=" >> $GITHUB_OUTPUT
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update PR body and title if PR already exists and threshold met
-        if: steps.count.outputs.count >= env.FILE_DIFF_SIZE && steps.pr.outputs.pr_exists == 'true'
+        if: steps.count.outputs.count >= env.FILE_DIFF_SIZE && steps.pr.outputs.pr_exists == 'true' && steps.pr.outputs.pr_number != ''
         run: |
-          PR_NUMBER=$(cat pr_number.txt)
+          PR_NUMBER="${{ steps.pr.outputs.pr_number }}"
           # 今日の日付からその週の土曜日の日付を計算
           TODAY=$(date +'%Y-%m-%d')
           DOW=$(date -d "$TODAY" +%w)
