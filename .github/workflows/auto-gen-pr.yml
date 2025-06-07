@@ -35,6 +35,22 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Update PR body and title if PR already exists and threshold met
+        if: steps.count.outputs.count >= env.FILE_DIFF_SIZE && steps.pr.outputs.pr_exists == 'true'
+        run: |
+          PR_NUMBER=$(cat pr_number.txt)
+          # 今日の日付からその週の土曜日の日付を計算
+          TODAY=$(date +'%Y-%m-%d')
+          DOW=$(date -d "$TODAY" +%w)
+          DAYS_TO_SAT=$((6 - DOW))
+          SATURDAY=$(date -d "$TODAY +$DAYS_TO_SAT day" +'%Y/%m/%d')
+          # 最新のコミット一覧を取得
+          COMMITS=$(git log origin/main..HEAD --pretty=format:'- %s (%an)' --reverse)
+          # PRのbodyとタイトルを最新情報で上書き
+          gh pr edit $PR_NUMBER --title "$SATURDAY: Weekly Outcomes" --body "\n\nコミット一覧:\n$COMMITS"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create PR if threshold met and no PR exists
         if: steps.count.outputs.count >= env.FILE_DIFF_SIZE && steps.pr.outputs.pr_exists == 'false'
         run: |
@@ -44,6 +60,6 @@ jobs:
           DAYS_TO_SAT=$((6 - DOW))
           SATURDAY=$(date -d "$TODAY +$DAYS_TO_SAT day" +'%Y/%m/%d')
           COMMITS=$(git log origin/main..HEAD --pretty=format:'- %s (%an)' --reverse)
-          gh pr create --base main --head ${{ github.ref_name }} --title "$SATURDAY: Weekly Outcomes" --body "自動生成されたPRです。\n\nコミット一覧:\n$COMMITS"
+          gh pr create --base main --head ${{ github.ref_name }} --title "$SATURDAY: Weekly Outcomes" --body "\n\nコミット一覧:\n$COMMITS"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
