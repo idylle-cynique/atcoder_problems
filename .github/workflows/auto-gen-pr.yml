@@ -27,13 +27,17 @@ jobs:
         id: pr
         run: |
           gh pr list --base main --head ${{ github.ref_name }} --json number --jq '.[0].number' > pr_number.txt
-          if [ -s pr_number.txt ]; then
-            echo "pr_exists=true" >> $GITHUB_OUTPUT
-            echo "pr_number=$(cat pr_number.txt)" >> $GITHUB_OUTPUT
+          PR_NUMBER=$(cat pr_number.txt | tr -d '\n')
+          if [ -n "$PR_NUMBER" ]; then
+            echo "pr_exists=true" | tee -a $GITHUB_OUTPUT
+            echo "pr_number=$PR_NUMBER" | tee -a $GITHUB_OUTPUT
           else
-            echo "pr_exists=false" >> $GITHUB_OUTPUT
-            echo "pr_number=" >> $GITHUB_OUTPUT
+            echo "pr_exists=false" | tee -a $GITHUB_OUTPUT
+            echo "pr_number=" | tee -a $GITHUB_OUTPUT
           fi
+          # 出力値をログにも明示
+          echo "[LOG] pr_exists=$(if [ -n \"$PR_NUMBER\" ]; then echo true; else echo false; fi)"
+          echo "[LOG] pr_number=$PR_NUMBER"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -41,27 +45,29 @@ jobs:
         if: steps.count.outputs.count >= env.FILE_DIFF_SIZE && steps.pr.outputs.pr_exists == 'true' && steps.pr.outputs.pr_number != ''
         run: |
           PR_NUMBER="${{ steps.pr.outputs.pr_number }}"
-          # 今日の日付からその週の土曜日の日付を計算
+          git fetch origin main --unshallow || git fetch origin main
           TODAY=$(date +'%Y-%m-%d')
           DOW=$(date -d "$TODAY" +%w)
           DAYS_TO_SAT=$((6 - DOW))
           SATURDAY=$(date -d "$TODAY +$DAYS_TO_SAT day" +'%Y/%m/%d')
-          # 最新のコミット一覧を取得
-          COMMITS=$(git log origin/main..HEAD --pretty=format:'- %s (%an)' --reverse)
-          # PRのbodyとタイトルを最新情報で上書き
-          gh pr edit $PR_NUMBER --title "$SATURDAY: Weekly Outcomes" --body "\n\nコミット一覧:\n$COMMITS"
+          COMMITS=$(git log origin/main..HEAD --pretty=format:'- [%h](https://github.com/${{ github.repository }}/commit/%H) %s (%an)' --reverse)
+          BODY="## Commit Logs:\n\n$COMMITS"
+          echo -e "$BODY" > body.txt
+          gh pr edit $PR_NUMBER --title "$SATURDAY: Weekly Outcomes" --body-file body.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create PR if threshold met and no PR exists
         if: steps.count.outputs.count >= env.FILE_DIFF_SIZE && steps.pr.outputs.pr_exists == 'false'
         run: |
-          # 今日の日付からその週の土曜日の日付を計算
+          git fetch origin main --unshallow || git fetch origin main
           TODAY=$(date +'%Y-%m-%d')
           DOW=$(date -d "$TODAY" +%w)
           DAYS_TO_SAT=$((6 - DOW))
           SATURDAY=$(date -d "$TODAY +$DAYS_TO_SAT day" +'%Y/%m/%d')
-          COMMITS=$(git log origin/main..HEAD --pretty=format:'- %s (%an)' --reverse)
-          gh pr create --base main --head ${{ github.ref_name }} --title "$SATURDAY: Weekly Outcomes" --body "\n\nコミット一覧:\n$COMMITS"
+          COMMITS=$(git log origin/main..HEAD --pretty=format:'- [%h](https://github.com/${{ github.repository }}/commit/%H) %s (%an)' --reverse)
+          BODY="## Commit Logs\n\n$COMMITS"
+          echo -e "$BODY" > body.txt
+          gh pr create --base main --head ${{ github.ref_name }} --title "$SATURDAY: Weekly Outcomes" --body-file body.txt
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
