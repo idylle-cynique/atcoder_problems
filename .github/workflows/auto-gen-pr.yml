@@ -9,19 +9,19 @@ jobs:
   create-pr:
     runs-on: ubuntu-latest
     env:
-      COMMIT_SIZE: 5  # コミット数の閾値
+      FILE_DIFF_SIZE: 3  # 差分ファイル数の閾値
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up GitHub CLI
         run: sudo apt-get install gh
 
-      - name: Count commits not in main
+      - name: Count changed files not in main
         id: count
         run: |
           git fetch origin main
-          COUNT=$(git rev-list --count origin/main..HEAD)
-          echo "count=$COUNT" >> $GITHUB_OUTPUT
+          FILE_COUNT=$(git diff --name-only origin/main..HEAD | wc -l)
+          echo "count=$FILE_COUNT" >> $GITHUB_OUTPUT
 
       - name: Check for existing PR
         id: pr
@@ -36,7 +36,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create PR if threshold met and no PR exists
-        if: steps.count.outputs.count >= env.COMMIT_SIZE && steps.pr.outputs.pr_exists == 'false'
+        if: steps.count.outputs.count >= env.FILE_DIFF_SIZE && steps.pr.outputs.pr_exists == 'false'
         run: |
           # 今日の日付からその週の土曜日の日付を計算
           TODAY=$(date +'%Y-%m-%d')
