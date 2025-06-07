@@ -1,0 +1,49 @@
+name: weekly-pull-request
+
+on:
+  push:
+    branches:
+      - weekly-learning-outcomes  # 監視したいブランチ名に変更
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    env:
+      COMMIT_SIZE: 5  # コミット数の閾値
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up GitHub CLI
+        run: sudo apt-get install gh
+
+      - name: Count commits not in main
+        id: count
+        run: |
+          git fetch origin main
+          COUNT=$(git rev-list --count origin/main..HEAD)
+          echo "count=$COUNT" >> $GITHUB_OUTPUT
+
+      - name: Check for existing PR
+        id: pr
+        run: |
+          gh pr list --base main --head ${{ github.ref_name }} --json number --jq '.[0].number' > pr_number.txt
+          if [ -s pr_number.txt ]; then
+            echo "pr_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "pr_exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create PR if threshold met and no PR exists
+        if: steps.count.outputs.count >= env.COMMIT_SIZE && steps.pr.outputs.pr_exists == 'false'
+        run: |
+          # 今日の日付からその週の土曜日の日付を計算
+          TODAY=$(date +'%Y-%m-%d')
+          DOW=$(date -d "$TODAY" +%w)
+          DAYS_TO_SAT=$((6 - DOW))
+          SATURDAY=$(date -d "$TODAY +$DAYS_TO_SAT day" +'%Y/%m/%d')
+          COMMITS=$(git log origin/main..HEAD --pretty=format:'- %s (%an)' --reverse)
+          gh pr create --base main --head ${{ github.ref_name }} --title "$SATURDAY: Weekly Outcomes" --body "自動生成されたPRです。\n\nコミット一覧:\n$COMMITS"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
