@@ -1,0 +1,65 @@
+name: weekly-pull-request
+
+on:
+  push:
+    branches:
+      - weekly-learning-outcomes  # 監視したいブランチ名に変更
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    env:
+      FILE_DIFF_SIZE: 3  # 差分ファイル数の閾値
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up GitHub CLI
+        run: sudo apt-get install gh
+
+      - name: Count changed files not in main
+        id: count
+        run: |
+          git fetch origin main
+          FILE_COUNT=$(git diff --name-only origin/main..HEAD | wc -l)
+          echo "count=$FILE_COUNT" >> $GITHUB_OUTPUT
+
+      - name: Check for existing PR
+        id: pr
+        run: |
+          gh pr list --base main --head ${{ github.ref_name }} --json number --jq '.[0].number' > pr_number.txt
+          if [ -s pr_number.txt ]; then
+            echo "pr_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "pr_exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update PR body and title if PR already exists and threshold met
+        if: steps.count.outputs.count >= env.FILE_DIFF_SIZE && steps.pr.outputs.pr_exists == 'true'
+        run: |
+          PR_NUMBER=$(cat pr_number.txt)
+          # 今日の日付からその週の土曜日の日付を計算
+          TODAY=$(date +'%Y-%m-%d')
+          DOW=$(date -d "$TODAY" +%w)
+          DAYS_TO_SAT=$((6 - DOW))
+          SATURDAY=$(date -d "$TODAY +$DAYS_TO_SAT day" +'%Y/%m/%d')
+          # 最新のコミット一覧を取得
+          COMMITS=$(git log origin/main..HEAD --pretty=format:'- %s (%an)' --reverse)
+          # PRのbodyとタイトルを最新情報で上書き
+          gh pr edit $PR_NUMBER --title "$SATURDAY: Weekly Outcomes" --body "\n\nコミット一覧:\n$COMMITS"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create PR if threshold met and no PR exists
+        if: steps.count.outputs.count >= env.FILE_DIFF_SIZE && steps.pr.outputs.pr_exists == 'false'
+        run: |
+          # 今日の日付からその週の土曜日の日付を計算
+          TODAY=$(date +'%Y-%m-%d')
+          DOW=$(date -d "$TODAY" +%w)
+          DAYS_TO_SAT=$((6 - DOW))
+          SATURDAY=$(date -d "$TODAY +$DAYS_TO_SAT day" +'%Y/%m/%d')
+          COMMITS=$(git log origin/main..HEAD --pretty=format:'- %s (%an)' --reverse)
+          gh pr create --base main --head ${{ github.ref_name }} --title "$SATURDAY: Weekly Outcomes" --body "\n\nコミット一覧:\n$COMMITS"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
