@@ -43,9 +43,12 @@ def white_square_include?(arr2d, top, left, bottom, right)
   return false
 end
 
+def calc(arr2d)
+  t, l, b, r = fetch_area_coordinates(arr2d)
 
-t, l, b, r = fetch_area_coordinates(field)
+  white_square_include?(arr2d, t, l, b, r) ? 'No': 'Yes'
+end
 
-answer= white_square_include?(field, t, l, b, r) ? 'No': 'Yes'
+answer = calc(field)
 
 puts answer
