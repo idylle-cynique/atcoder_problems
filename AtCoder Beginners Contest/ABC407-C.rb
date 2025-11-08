@@ -7,17 +7,21 @@ def rotate_number(number, times)
   (number - times) % 10
 end
 
-rotate_count = 0
-
-S.reverse.each_char do |c|
-  nc = c.to_i
-  rotated_nc = rotate_number(nc, rotate_count)
-
-  unless rotated_nc.zero?
-    rotate_count += rotated_nc
+def calc(number_string)
+  rotate_count = 0
+  
+  number_string.reverse.each_char do |c|
+    nc = c.to_i
+    rotated_nc = rotate_number(nc, rotate_count)
+  
+    unless rotated_nc.zero?
+      rotate_count += rotated_nc
+    end
   end
+  
+  rotate_count + number_string.length
 end
 
-answer = rotate_count + S.length
+answer = calc(S)
 
 p answer
